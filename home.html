@@ -1,0 +1,198 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Dan's COVID-19 Tracker">
+    <meta name="author" content="Dan Corkran">
+
+    <title>COVID-19 Tracker</title>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <!-- Custom styles for this template -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+</head>
+
+<body>
+    <!--<nav class="nav navbar navbar-expand-md navbar-light fixed-top bg-light nav-fill">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item active">
+                    <a class="nav-link scroll-link" href="#home">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link scroll-link" href="#chart">Chart</a>
+                </li>
+            </ul>
+        </div>
+    </nav>-->
+
+    <main role="main">
+        <div class="jumbotron jumbotron-flex section" id="home">
+            <div class="container text-center justify-content-center">
+                <div class="row">
+                    <div class="col-12">
+                        <h3>Dan's COVID-19 Tracker</h3>
+                        <hr class="my-4" />
+                        <form class="text-center" id="state-form">
+                            <div class="row">
+                                <div class="col">
+                                    <select id="state1" class="state-select">
+                                        <option value="MA" selected>Choose a state</option>
+                                    </select>
+                                    <!--<input id="state1" type="text" class="form-control" placeholder="State Abbreviation 1" />-->
+                                </div>
+                                <div class="col">
+                                    <select id="state2" class="state-select">
+                                        <option value="IN" selected>Choose a state</option>
+                                    </select>
+                                    <!--<input id="state2" type="text" class="form-control" placeholder="State Abbreviation 2" />-->
+                                </div>
+                                <div class="col">
+                                    <button id="btn_submit" type="submit" class="btn btn-primary">Submit</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="jumbotron jumbotron-flex" id="chart_jumbo">
+            <div class="container text-center justify-content-center d-flex">
+                <div class="row">
+                    <div class="col-12">
+                        <div id="chart" style="width: 900px; height: 500px"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <span class="text-muted">Created by Dan</span>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script>
+        var statePop = {
+            'CA': 39512223,
+            'TX': 28995881,
+            'FL': 21477737,
+            'NY': 19453561,
+            'PA': 12801989,
+            'IL': 12671821,
+            'OH': 11689100,
+            'GA': 10617423,
+            'NC': 10488084,
+            'MI': 9986857,
+            'NJ': 8882190,
+            'VA': 8535519,
+            'WA': 7614893,
+            'AZ': 7278717,
+            'MA': 6949503,
+            'TN': 6833174,
+            'IN': 6732219,
+            'MO': 6137428,
+            'MD': 6045680,
+            'WI': 5822434,
+            'CO': 5758736,
+            'MN': 5639632,
+            'SC': 5148714,
+            'AL': 4903185,
+            'LA': 4648794,
+            'KY': 4467673,
+            'OR': 4217737,
+            'OK': 3956971,
+            'CT': 3565287,
+            'UT': 3205958,
+            'IA': 3155070,
+            'NV': 3080156,
+            'AR': 3017825,
+            'KS': 2913314,
+            'NM': 2096829,
+            'NE': 1934408,
+            'ID': 1787065,
+            'WV': 1792147,
+            'HI': 1415872,
+            'NH': 1359711,
+            'ME': 1344212,
+            'MT': 1068778,
+            'RI': 1059361,
+            'DE': 973764,
+            'SD': 884659,
+            'ND': 762062,
+            'AK': 731545,
+            'DC': 705749,
+            'VT': 623989,
+            'WY': 578759
+        }
+        function getStateArray(data, state1, state2) {
+            //data must be json array; state must be a string representing the two-letter state code
+            var dataArray = [["Date", state1, state2]];
+            for (let val in data) {
+                if (data[val].state == state1) {
+                    let sourceDate = data[val].date;
+                    let dateString = sourceDate.toString();
+                    let dateVal = new Date(Number(dateString.slice(0, 4)), Number(dateString.slice(4, 6)) - 1, Number(dateString.slice(6, 8)));
+                    let positiveIncreaseVal = data[val].positiveIncrease * 10000 / statePop[state1];
+                    let positiveIncreaseVal2;
+                    for (let val2 in data) {
+                        if (data[val2].state == state2 && data[val2].date == sourceDate) {
+                            positiveIncreaseVal2 = data[val2].positiveIncrease * 10000 / statePop[state2];
+                            break;
+                        }
+                    }
+                    dataArray.push([dateVal, positiveIncreaseVal, positiveIncreaseVal2]);
+                }
+            }
+            return dataArray;
+        }
+
+        function drawChart(state1, state2) {
+            $.getJSON("https://covidtracking.com/api/v1/states/daily.json", function (data) {
+                let dataArray = getStateArray(data, state1, state2);
+
+                var dataTable = google.visualization.arrayToDataTable(dataArray);
+                var options = {
+                    title: 'New Coronavirus Cases per 10,000 people',
+                    legend: { position: 'bottom' }
+                };
+                var chart = new google.visualization.LineChart(document.getElementById('chart'));
+                chart.draw(dataTable, options);
+            });
+        }
+
+        $(document).ready(function () {
+            $(".state-select").each(function (i) {
+                let states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
+                for (let x = 0; x < states.length; x++) {
+                    let opt = states[x];
+                    let el = document.createElement("option");
+                    el.textContent = opt;
+                    el.value = opt;
+                    this.appendChild(el);
+                }
+            });
+
+            $("#state-form").on('submit', function (e) {
+                e.preventDefault();
+                let state1 = document.getElementById('state1').value;
+                let state2 = document.getElementById('state2').value;
+                drawChart(state1, state2);
+            });
+        })
+
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart('MA','IN'));
+
+    </script>
+</body>
+</html>
