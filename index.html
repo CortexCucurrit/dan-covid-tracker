@@ -14,7 +14,7 @@
 
 </head>
 
-<body>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
     <!--<nav class="nav navbar navbar-expand-md navbar-light fixed-top bg-light nav-fill">
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -31,8 +31,8 @@
         </div>
     </nav>-->
 
-    <main role="main">
-        <div class="jumbotron jumbotron-flex section" id="home">
+    <main role="main" class="d-flex flex-column" style="flex: 1;">
+        <div class="jumbotron d-flex flex-column flex-grow-1" id="home">
             <div class="container text-center justify-content-center">
                 <div class="row">
                     <div class="col-12">
@@ -41,39 +41,34 @@
                         <form class="text-center" id="state-form">
                             <div class="row">
                                 <div class="col">
-                                    <select id="state1" class="state-select">
+                                    <select id="state1" class="custom-select state-select">
                                         <option value="MA" selected>Choose a state</option>
                                     </select>
                                     <!--<input id="state1" type="text" class="form-control" placeholder="State Abbreviation 1" />-->
                                 </div>
                                 <div class="col">
-                                    <select id="state2" class="state-select">
+                                    <select id="state2" class="custom-select state-select">
                                         <option value="IN" selected>Choose a state</option>
                                     </select>
                                     <!--<input id="state2" type="text" class="form-control" placeholder="State Abbreviation 2" />-->
                                 </div>
-                                <div class="col">
-                                    <button id="btn_submit" type="submit" class="btn btn-primary">Submit</button>
-                                </div>
+                                <!--<div class="col">
+                            <button id="btn_submit" type="submit" class="btn btn-primary">Submit</button>
+                        </div>-->
                             </div>
                         </form>
+                        <hr class="my-4" />
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="jumbotron jumbotron-flex" id="chart_jumbo">
-            <div class="container text-center justify-content-center d-flex">
-                <div class="row">
-                    <div class="col-12">
-                        <div id="chart" style="width: 900px; height: 500px"></div>
-                    </div>
-                </div>
+            <div class="container d-flex flex-column flex-grow-1">
+                <div id="chart" class="flex-grow-1"></div>
             </div>
         </div>
     </main>
 
     <footer class="footer">
-        <div class="container text-center">
+        <div class="container text-center mb-4">
             <span class="text-muted">Created by Dan</span>
         </div>
     </footer>
@@ -171,6 +166,8 @@
         }
 
         $(document).ready(function () {
+            google.charts.load('current', { 'packages': ['corechart'] });
+            google.charts.setOnLoadCallback(drawChart('MA', 'IN'));
             $(".state-select").each(function (i) {
                 let states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
                 for (let x = 0; x < states.length; x++) {
@@ -182,17 +179,13 @@
                 }
             });
 
-            $("#state-form").on('submit', function (e) {
+            $("#state-form").on('change', function (e) {
                 e.preventDefault();
                 let state1 = document.getElementById('state1').value;
                 let state2 = document.getElementById('state2').value;
                 drawChart(state1, state2);
             });
         })
-
-        google.charts.load('current', { 'packages': ['corechart'] });
-        google.charts.setOnLoadCallback(drawChart('MA','IN'));
-
     </script>
 </body>
 </html>
