@@ -130,6 +130,15 @@
             'VT': 623989,
             'WY': 578759
         }
+
+        function cleanDatum(datum) {
+            //corrects out of range results
+            if(datum < 0) {
+                datum = 0;
+            }
+            return datum;
+        }
+
         function getStateArray(data, state1, state2) {
             //data must be json array; state must be a string representing the two-letter state code
             var dataArray = [["Date", state1, state2]];
@@ -139,10 +148,12 @@
                     let dateString = sourceDate.toString();
                     let dateVal = new Date(Number(dateString.slice(0, 4)), Number(dateString.slice(4, 6)) - 1, Number(dateString.slice(6, 8)));
                     let positiveIncreaseVal = data[val].positiveIncrease * 10000 / statePop[state1];
+                    positiveIncreaseVal = cleanDatum(positiveIncreaseVal);
                     let positiveIncreaseVal2;
                     for (let val2 in data) {
                         if (data[val2].state == state2 && data[val2].date == sourceDate) {
                             positiveIncreaseVal2 = data[val2].positiveIncrease * 10000 / statePop[state2];
+                            positiveIncreaseVal2 = cleanDatum(positiveIncreaseVal2);
                             break;
                         }
                     }
