@@ -164,7 +164,7 @@
         }
 
         function drawChart(state1, state2) {
-            $.getJSON("https://cors-anywhere.herokuapp.com/https://covidtracking.com/api/v1/states/daily.json", function (data) {
+            $.getJSON("https://cors-anywhere.herokuapp.com/https://api.covidtracking.com/v1/states/daily.json", function (data) {
                 let dataArray = getStateArray(data, state1, state2);
 
                 var dataTable = google.visualization.arrayToDataTable(dataArray);
