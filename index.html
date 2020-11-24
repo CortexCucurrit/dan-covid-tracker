@@ -14,7 +14,7 @@
 
 </head>
 
-<body style="display: flex; flex-direction: column; min-height: 100vh;">
+<body style="display: flex; flex-direction: column; min-height: 100vh">
     <!--<nav class="nav navbar navbar-expand-md navbar-light fixed-top bg-light nav-fill">
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -31,7 +31,7 @@
         </div>
     </nav>-->
 
-    <main role="main" class="d-flex flex-column" style="flex: 1;">
+    <main role="main" class="d-flex flex-column" style="flex: 1">
         <div class="jumbotron d-flex flex-column flex-grow-1" id="home">
             <div class="container text-center justify-content-center">
                 <div class="row">
@@ -39,22 +39,26 @@
                         <h3>Dan's COVID-19 Tracker</h3>
                         <hr class="my-4" />
                         <form class="text-center" id="state-form">
+                            <table class="table text-left">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">State</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="state-selector">
+                                    <tr class="state">
+                                        <td>
+                                            <div class="input-group" id="state-0">
+                                                <select id="state1" class="custom-select state-select">
+                                                    <option value="MA" selected>Choose a state...</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                             <div class="row">
-                                <div class="col">
-                                    <select id="state1" class="custom-select state-select">
-                                        <option value="MA" selected>Choose a state</option>
-                                    </select>
-                                    <!--<input id="state1" type="text" class="form-control" placeholder="State Abbreviation 1" />-->
-                                </div>
-                                <div class="col">
-                                    <select id="state2" class="custom-select state-select">
-                                        <option value="IN" selected>Choose a state</option>
-                                    </select>
-                                    <!--<input id="state2" type="text" class="form-control" placeholder="State Abbreviation 2" />-->
-                                </div>
-                                <!--<div class="col">
-                            <button id="btn_submit" type="submit" class="btn btn-primary">Submit</button>
-                        </div>-->
+                                <input id="addStateRow" type="button" class="btn btn-secondary" value="Add New State" onclick="addState()" />
                             </div>
                         </form>
                         <hr class="my-4" />
@@ -131,6 +135,75 @@
             'WY': 578759
         }
 
+        var globalCount = 0;
+
+        function addState() {
+            //add a state selector to the form
+            globalCount++;
+            var stateID = "state-" + globalCount;
+            var deleteFunc = "deleteState('" + stateID + "');";
+            var stateDiv = document.createElement("tr");
+            stateDiv.setAttribute("class","state");
+            stateDiv.setAttribute("id",stateID);
+
+            var stateTD = document.createElement("td");
+
+            var stateGroup = document.createElement("div");
+            stateGroup.setAttribute("class","input-group");
+
+            var selectGroup = document.createElement("select");
+            selectGroup.setAttribute("class","custom-select state-select");
+
+            var selectOption = document.createElement("option");
+            selectOption.setAttribute("value","NA");
+            selectOption.setAttribute("selected",true);
+            selectOption.innerHTML = "Choose a state";
+            selectGroup.appendChild(selectOption);
+
+            var stateAppend = document.createElement("div");
+            stateAppend.setAttribute("class","input-group-append");
+
+            var stateDelete = document.createElement("button");
+            stateDelete.setAttribute("type","button");
+            stateDelete.setAttribute("class","btn btn-danger btn-sm");
+            stateDelete.setAttribute("onclick",deleteFunc);
+            stateDelete.innerHTML = "X";
+            stateAppend.appendChild(stateDelete);
+
+            stateGroup.appendChild(selectGroup);
+            stateGroup.appendChild(stateAppend);
+
+            stateTD.appendChild(stateGroup);
+
+            stateDiv.appendChild(stateTD);
+
+            document.getElementById("state-selector").appendChild(stateDiv);
+            buildStateLists();
+        }
+
+        function deleteState(stateID) {
+            //delete a state selector from the form
+            document.getElementById(stateID).remove();
+            drawChart();
+        }
+        
+        function getStates() {
+            //gets an array of all states selected
+            var stateArray = [];
+            var valText = "";
+            $("#state-selector").children().each(function () {
+                $(this).children().each(function () {
+                    $(this).children('.input-group').each(function () {
+                        $(this).children('.state-select').each(function () {
+                            valText = $(this).find(":selected").val();
+                            stateArray.push(valText);
+                        })
+                    })
+                })
+            });
+            return stateArray;            
+        }
+
         function cleanDatum(datum) {
             //corrects out of range results
             if(datum < 0) {
@@ -139,33 +212,52 @@
             return datum;
         }
 
-        function getStateArray(data, state1, state2) {
-            //data must be json array; state must be a string representing the two-letter state code
-            var dataArray = [["Date", state1, state2]];
+        function getStateArray(data, stateArray) {
+            //data must be json array; stateArray must be an array of 2-letter state codes.
+            var stateList = [];
+            var stateList = stateArray.map((x) => x);
+            stateList.splice(0,0,"Date");
+            var dataArray = [stateList];
+            var stateID = "";
+            
             for (let val in data) {
-                if (data[val].state == state1) {
+                stateID1 = stateArray[0];
+                
+                if (data[val].state == stateID1) {
+                    let dataRow = [];
                     let sourceDate = data[val].date;
                     let dateString = sourceDate.toString();
                     let dateVal = new Date(Number(dateString.slice(0, 4)), Number(dateString.slice(4, 6)) - 1, Number(dateString.slice(6, 8)));
-                    let positiveIncreaseVal = data[val].positiveIncrease * 10000 / statePop[state1];
+                    let positiveIncreaseVal = data[val].positiveIncrease * 100000 / statePop[stateID1];
                     positiveIncreaseVal = cleanDatum(positiveIncreaseVal);
+                    dataRow.push(dateVal);
+                    dataRow.push(positiveIncreaseVal);
+
                     let positiveIncreaseVal2;
-                    for (let val2 in data) {
-                        if (data[val2].state == state2 && data[val2].date == sourceDate) {
-                            positiveIncreaseVal2 = data[val2].positiveIncrease * 10000 / statePop[state2];
-                            positiveIncreaseVal2 = cleanDatum(positiveIncreaseVal2);
-                            break;
+                    for (i=1; i < stateArray.length; i++) {
+                        stateID = stateArray[i];
+                        for (let val2 in data) {
+                            if (data[val2].state == stateID && data[val2].date == sourceDate) {
+                                positiveIncreaseVal2 = data[val2].positiveIncrease * 100000 / statePop[stateID];
+                                positiveIncreaseVal2 = cleanDatum(positiveIncreaseVal2);
+                            }
+                        }
+                        if (positiveIncreaseVal2 > 0) {
+                            dataRow.push(positiveIncreaseVal2);
+                        } else {
+                            positiveIncreaseVal2 = 0;
+                            dataRow.push(positiveIncreaseVal2);
                         }
                     }
-                    dataArray.push([dateVal, positiveIncreaseVal, positiveIncreaseVal2]);
+                    dataArray.push(dataRow);
                 }
             }
             return dataArray;
         }
 
-        function drawChart(state1, state2) {
+        function drawChart() {
             $.getJSON("https://api.covidtracking.com/v1/states/daily.json", function (data) {
-                let dataArray = getStateArray(data, state1, state2);
+                let dataArray = getStateArray(data, getStates());
 
                 var dataTable = google.visualization.arrayToDataTable(dataArray);
                 var options = {
@@ -177,9 +269,7 @@
             });
         }
 
-        $(document).ready(function () {
-            google.charts.load('current', { 'packages': ['corechart'] });
-            google.charts.setOnLoadCallback(drawChart('MA', 'IN'));
+        function buildStateLists() {
             $(".state-select").each(function (i) {
                 let states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
                 for (let x = 0; x < states.length; x++) {
@@ -190,12 +280,17 @@
                     this.appendChild(el);
                 }
             });
+        }
+
+        $(document).ready(function () {
+            google.charts.load('current', { 'packages': ['corechart'] });
+            google.charts.setOnLoadCallback(drawChart());
+            
+            buildStateLists();
 
             $("#state-form").on('change', function (e) {
                 e.preventDefault();
-                let state1 = document.getElementById('state1').value;
-                let state2 = document.getElementById('state2').value;
-                drawChart(state1, state2);
+                drawChart();
             });
         })
     </script>
