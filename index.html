@@ -40,12 +40,10 @@
                         <hr class="my-4" />
                         <div class="row">
                             <div class="col-6">
+                                <p class="text-left"><b>State</b></p>
                                 <form class="text-center" id="state-form">
                                     <table class="table text-left">
                                         <tbody id="state-selector">
-                                            <tr>
-                                                <th>State</th>
-                                            </tr>
                                             <tr class="state">
                                                 <td>
                                                     <div class="input-group" id="state-0">
@@ -63,14 +61,20 @@
                                 </form>
                             </div>
                             <div class="col-6">
+                                <p class="text-left"><b>Data Type</b></p>
                                 <form id="data-type-form">
-                                    <div class="form-group text-left">
-                                        <label for="data-type-select"><b>Data Type</b></label>
-                                        <select id="data-type-select" class="form-control">
-                                            <option value="7-Day" selected>7-Day Moving Average</option>
-                                            <option value="daily">Daily Total</option>
-                                        </select>
-                                    </div>
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <select id="data-type-select" class="custom-select">
+                                                        <option value="7-Day" selected>7-Day Moving Average</option>
+                                                        <option value="daily">Daily Total</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </form>
                             </div>
                         </div>
