@@ -38,29 +38,42 @@
                     <div class="col-12">
                         <h3>Dan's COVID-19 Tracker</h3>
                         <hr class="my-4" />
-                        <form class="text-center" id="state-form">
-                            <table class="table text-left">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">State</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="state-selector">
-                                    <tr class="state">
-                                        <td>
-                                            <div class="input-group" id="state-0">
-                                                <select id="state1" class="custom-select state-select">
-                                                    <option value="MA" selected>Choose a state...</option>
-                                                </select>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="row">
-                                <input id="addStateRow" type="button" class="btn btn-secondary" value="Add New State" onclick="addState()" />
+                        <div class="row">
+                            <div class="col-6">
+                                <form class="text-center" id="state-form">
+                                    <table class="table text-left">
+                                        <tbody id="state-selector">
+                                            <tr>
+                                                <th>State</th>
+                                            </tr>
+                                            <tr class="state">
+                                                <td>
+                                                    <div class="input-group" id="state-0">
+                                                        <select id="state1" class="custom-select state-select">
+                                                            <option value="MA" selected>Choose a state...</option>
+                                                        </select>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="row">
+                                        <input id="addStateRow" type="button" class="btn btn-secondary" value="Add New State" onclick="addState()" />
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                            <div class="col-6">
+                                <form id="data-type-form">
+                                    <div class="form-group text-left">
+                                        <label for="data-type-select"><b>Data Type</b></label>
+                                        <select id="data-type-select" class="form-control">
+                                            <option value="7-Day" selected>7-Day Moving Average</option>
+                                            <option value="daily">Daily Total</option>
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                         <hr class="my-4" />
                     </div>
                 </div>
@@ -255,17 +268,64 @@
             return dataArray;
         }
 
+        function calcMovingAverage(dataArray, days) {
+            //calculates a moving average for the selected data array
+            //dataArray must be a data array with each value an array for each date
+            //days is an integer for the number of days to include in the moving average
+            if (dataArray.length <= days) return;
+            else {
+                var MaArray = [];
+                var currDateRow = [];
+                var prevDateRow = [];
+                var newDateRow = [];
+                var total;
+                var prevVal;
+                var dayAverage;
+                MaArray.push(dataArray[0]);
+                for (var iDate=1; iDate < (dataArray.length - days); iDate++) {
+                    currDateRow = dataArray[iDate];
+                    newDateRow.push(currDateRow[0]);
+                    for (var k=1; k < currDateRow.length; k++) {
+                        total = 0;
+                        for (var prevDate=(iDate+(days-1)); prevDate>=iDate; prevDate--) {
+                            prevDateRow = dataArray[prevDate];
+                            total += prevDateRow[k];
+                        }
+                        dayAverage = total/days;
+                        newDateRow.push(dayAverage);
+                    }
+                    MaArray.push(newDateRow);
+                    newDateRow = [];
+                }
+                return MaArray;
+            }
+        }
+
         function drawChart() {
             $.getJSON("https://api.covidtracking.com/v1/states/daily.json", function (data) {
                 let dataArray = getStateArray(data, getStates());
+                let MaArray = calcMovingAverage(dataArray, 7);
 
                 var dataTable = google.visualization.arrayToDataTable(dataArray);
                 var options = {
                     title: 'New Coronavirus Cases per 100,000 people',
                     legend: { position: 'bottom' }
                 };
+
+                var dataTableMa = google.visualization.arrayToDataTable(MaArray);
+                var optionsMa = {
+                    title: '7-Day Moving Average of New Coronavirus Cases per 100,000 people',
+                    legend: { position: 'bottom' }
+                };
+
                 var chart = new google.visualization.LineChart(document.getElementById('chart'));
-                chart.draw(dataTable, options);
+
+                if(document.getElementById("data-type-select").value == "7-Day") {
+                    chart.draw(dataTableMa, optionsMa);
+                } else {
+                    chart.draw(dataTable, options);
+                }
+                
             });
         }
 
@@ -289,6 +349,11 @@
             buildStateLists();
 
             $("#state-form").on('change', function (e) {
+                e.preventDefault();
+                drawChart();
+            });
+
+            $("#data-type-form").on('change', function (e) {
                 e.preventDefault();
                 drawChart();
             });
