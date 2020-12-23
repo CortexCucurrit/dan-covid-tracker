@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <!-- Custom styles for this template -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-
 </head>
 
 <body style="display: flex; flex-direction: column; min-height: 100vh">
@@ -40,7 +39,7 @@
                         <hr class="my-4" />
                         <div class="row">
                             <div class="col-6">
-                                <p class="text-left"><b>State</b></p>
+                                <!-- <p class="text-left"><b>State</b></p> -->
                                 <form class="text-center" id="state-form">
                                     <table class="table text-left">
                                         <tbody id="state-selector">
@@ -60,21 +59,63 @@
                                     </div>
                                 </form>
                             </div>
-                            <div class="col-6">
-                                <p class="text-left"><b>Data Type</b></p>
+                            <div class="col-6 text-left">
+                                <!-- <p class="text-left"><b>Data Type</b></p> -->
                                 <form id="data-type-form">
-                                    <table class="table">
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <label class="control-label" for="data-type-select"><b>Data Type: </b></label>
+                                        </div>
+                                        <div class="col">
+                                            <select id="data-type-select" class="custom-select">
+                                                <option value="7-Day" selected>7-Day Moving Average</option>
+                                                <option value="daily">Daily Total</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <label class="control-label" for="date-start"><b>Start: </b></label>
+                                        </div>
+                                        <div class="col">
+                                            <input class="form-control" type="date" id="date-start" name="date-start" placeholder="MM/DD/YYYY"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <label class="control-label" for="date-end"><b>End: </b></label>
+                                        </div>
+                                        <div class="col">
+                                            <input class="form-control" type="date" id="date-end" name="date-end" placeholder="MM/DD/YYYY"/>
+                                        </div>
+                                    </div>
+                                    <!-- <table class="table">
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <select id="data-type-select" class="custom-select">
-                                                        <option value="7-Day" selected>7-Day Moving Average</option>
-                                                        <option value="daily">Daily Total</option>
-                                                    </select>
+                                                    <div class="form-group">
+                                                        <label class="control-label" for="data-type-select"><b>Data Type: </b></label>
+                                                        <select id="data-type-select" class="custom-select">
+                                                            <option value="7-Day" selected>7-Day Moving Average</option>
+                                                            <option value="daily">Daily Total</option>
+                                                        </select>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="form-group">
+                                                        <label class="control-label" for="date-start">Start: </label>
+                                                        <input class="form-control" id="date-start" name="date-start" placeholder="MM/DD/YYYY" type="text"/>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label" for="date-end">End: </label>
+                                                        <input class="form-control" id="date-end" name="date-end" placeholder="MM/DD/YYYY" type="text"/>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>
-                                    </table>
+                                    </table> -->
                                 </form>
                             </div>
                         </div>
@@ -305,18 +346,51 @@
             }
         }
 
+        function filterDates(dataArray) {
+            let dateStartString = document.getElementById("date-start").value;
+            let dateEndString = document.getElementById("date-end").value;
+            let startDate = new Date(Number(dateStartString.slice(0, 4)), Number(dateStartString.slice(5, 7)) - 1, Number(dateStartString.slice(8)));
+            let endDate = new Date(Number(dateEndString.slice(0, 4)), Number(dateEndString.slice(5, 7)) - 1, Number(dateEndString.slice(8)));
+            let newArray = [];
+            if (dateStartString && dateEndString) {
+                newArray.push(dataArray[0]);
+                for (item=1; item < dataArray.length; item++) {
+                    if (startDate <= dataArray[item][0] && endDate >= dataArray[item][0]) {
+                        newArray.push(dataArray[item]);
+                    }
+                }
+            } else if (dateStartString) {
+                newArray.push(dataArray[0]);
+                for (item=1; item < dataArray.length; item++) {
+                    if (startDate <= dataArray[item][0]) {
+                        newArray.push(dataArray[item]);
+                    }
+                }
+            } else if (dateEndString) {
+                newArray.push(dataArray[0]);
+                for (item=1; item < dataArray.length; item++) {
+                    if (endDate.getTime() >= dataArray[item][0]) {
+                        newArray.push(dataArray[item]);
+                    }
+                }
+            } else {newArray = dataArray}
+            return newArray;
+        }
+
         function drawChart() {
             $.getJSON("https://api.covidtracking.com/v1/states/daily.json", function (data) {
                 let dataArray = getStateArray(data, getStates());
                 let MaArray = calcMovingAverage(dataArray, 7);
+                let filtDataArray = filterDates(dataArray);
+                let filtMaArray = filterDates(MaArray);
 
-                var dataTable = google.visualization.arrayToDataTable(dataArray);
+                var dataTable = google.visualization.arrayToDataTable(filtDataArray);
                 var options = {
                     title: 'New Coronavirus Cases per 100,000 people',
                     legend: { position: 'bottom' }
                 };
 
-                var dataTableMa = google.visualization.arrayToDataTable(MaArray);
+                var dataTableMa = google.visualization.arrayToDataTable(filtMaArray);
                 var optionsMa = {
                     title: '7-Day Moving Average of New Coronavirus Cases per 100,000 people',
                     legend: { position: 'bottom' }
@@ -347,6 +421,7 @@
         }
 
         $(document).ready(function () {
+
             google.charts.load('current', { 'packages': ['corechart'] });
             google.charts.setOnLoadCallback(drawChart());
             
