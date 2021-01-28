@@ -106,23 +106,24 @@
             let startDate = new Date(Number(dateStartString.slice(0, 4)), Number(dateStartString.slice(5, 7)) - 1, Number(dateStartString.slice(8)));
             let endDate = new Date(Number(dateEndString.slice(0, 4)), Number(dateEndString.slice(5, 7)) - 1, Number(dateEndString.slice(8)));
             let newArray = [];
+            newArray.push(dataArray[0]);
             if (dateStartString && dateEndString) {
-                for (let i=0; i < dataArray.length; i++) {
-                    let lastDate = textToDate(dataArray[i].lastupdatedate);
+                for (let i=1; i < dataArray.length; i++) {
+                    let lastDate = dataArray[i][0];
                     if (startDate <= lastDate && endDate >= lastDate) {
                         newArray.push(dataArray[i]);
                     }
                 }
             } else if (dateStartString) {
                 for (let i=0; i < dataArray.length; i++) {
-                    let lastDate = textToDate(dataArray[i].lastupdatedate);
+                    let lastDate = dataArray[i][0];
                     if (startDate <= lastDate) {
                         newArray.push(dataArray[i]);
                     }
                 }
             } else if (dateEndString) {
                 for (let i=0; i < dataArray.length; i++) {
-                    let lastDate = textToDate(dataArray[i].lastupdatedate);
+                    let lastDate = dataArray[i][0];
                     if (endDate >= lastDate) {
                         newArray.push(dataArray[i]);
                     }
@@ -301,11 +302,12 @@
         }
 
         function drawChart() {
-            let filtDateArray = filterDates(ctData);
             let townFilter = getSelectedTowns();
-            let filtTownArray = getTownArray(filtDateArray, townFilter);
-            let filtTownMAArray = calcMA(filtTownArray);
-            let dataTable = google.visualization.arrayToDataTable(filtTownMAArray);
+            let TownArray = getTownArray(ctData, townFilter);
+            let TownMaArray = calcMA(TownArray);
+            let FiltTownMaArray = filterDates(TownMaArray);
+            let dataTable = google.visualization.arrayToDataTable(FiltTownMaArray);
+            
             var options = {
                 title: "COVID-19 Case Rate Per 100,000 People, 7-Day Moving Average",
                 legend: {position: 'bottom'}
