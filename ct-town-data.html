@@ -35,18 +35,18 @@
             <div class="container text-center justify-content-center">
                 <div class="row">
                     <div class="col-12">
-                        <h3>Dan's COVID-19 Tracker</h3>
+                        <h3>Dan's Connecticut Towns COVID-19 Tracker</h3>
                         <hr class="my-4" />
                         <div class="row">
                             <div class="col-6">
-                                <form class="text-center" id="state-form">
+                                <form class="text-center" id="town-form">
                                     <table class="table text-left">
-                                        <tbody id="state-selector">
-                                            <tr class="state">
+                                        <tbody id="town-selector">
+                                            <tr class="town">
                                                 <td>
                                                     <div class="input-group" id="state-0">
-                                                        <select id="state1" class="custom-select state-select">
-                                                            <option value="MA" selected>Choose a state...</option>
+                                                        <select id="town1" class="custom-select town-select">
+                                                            <option value="Lebanon" selected>Choose a town...</option>
                                                         </select>
                                                     </div>
                                                 </td>
@@ -54,19 +54,12 @@
                                         </tbody>
                                     </table>
                                     <div class="row">
-                                        <input id="addStateRow" type="button" class="btn btn-secondary" value="Add New State" onclick="addState()" />
+                                        <input id="addTownRow" type="button" class="btn btn-secondary" value="Add Another Town" onclick="addTown()" />
                                     </div>
                                 </form>
                             </div>
                             <div class="col-6 text-left">
                                 <form id="data-type-form">
-                                    <div class="form-group">
-                                        <label class="control-label" for="data-type-select"><b>Data Type: </b></label>
-                                        <select id="data-type-select" class="custom-select">
-                                            <option value="7-Day" selected>7-Day Moving Average</option>
-                                            <option value="daily">Daily Total</option>
-                                        </select>
-                                    </div>
                                     <div class="form-group">
                                         <label class="control-label" for="date-start"><b>Start: </b></label>
                                         <input class="form-control" type="date" id="date-start" name="date-start" placeholder="MM/DD/YYYY"/>
@@ -98,61 +91,270 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
     <script>
-        var statePop = {
-            'CA': 39512223,
-            'TX': 28995881,
-            'FL': 21477737,
-            'NY': 19453561,
-            'PA': 12801989,
-            'IL': 12671821,
-            'OH': 11689100,
-            'GA': 10617423,
-            'NC': 10488084,
-            'MI': 9986857,
-            'NJ': 8882190,
-            'VA': 8535519,
-            'WA': 7614893,
-            'AZ': 7278717,
-            'MA': 6949503,
-            'TN': 6833174,
-            'IN': 6732219,
-            'MO': 6137428,
-            'MD': 6045680,
-            'WI': 5822434,
-            'CO': 5758736,
-            'MN': 5639632,
-            'SC': 5148714,
-            'AL': 4903185,
-            'LA': 4648794,
-            'KY': 4467673,
-            'OR': 4217737,
-            'OK': 3956971,
-            'CT': 3565287,
-            'UT': 3205958,
-            'IA': 3155070,
-            'NV': 3080156,
-            'AR': 3017825,
-            'MS': 2976149,
-            'KS': 2913314,
-            'NM': 2096829,
-            'NE': 1934408,
-            'ID': 1787065,
-            'WV': 1792147,
-            'HI': 1415872,
-            'NH': 1359711,
-            'ME': 1344212,
-            'MT': 1068778,
-            'RI': 1059361,
-            'DE': 973764,
-            'SD': 884659,
-            'ND': 762062,
-            'AK': 731545,
-            'DC': 705749,
-            'VT': 623989,
-            'WY': 578759
+        var ctData = [];
+        var ctTowns = [];
+        var globalCount = 0;
+
+        function textToDate(dateTxt) {
+            let dateVal = new Date(Number(dateTxt.slice(0,4)), Number(dateTxt.slice(5,7)) - 1, Number(dateTxt.slice(8,10)));
+            return dateVal;
         }
 
-        var globalCount = 0;
+        function filterDates(dataArray) {
+            let dateStartString = document.getElementById("date-start").value;
+            let dateEndString = document.getElementById("date-end").value;
+            let startDate = new Date(Number(dateStartString.slice(0, 4)), Number(dateStartString.slice(5, 7)) - 1, Number(dateStartString.slice(8)));
+            let endDate = new Date(Number(dateEndString.slice(0, 4)), Number(dateEndString.slice(5, 7)) - 1, Number(dateEndString.slice(8)));
+            let newArray = [];
+            if (dateStartString && dateEndString) {
+                for (let i=0; i < dataArray.length; i++) {
+                    let lastDate = textToDate(dataArray[i].lastupdatedate);
+                    if (startDate <= lastDate && endDate >= lastDate) {
+                        newArray.push(dataArray[i]);
+                    }
+                }
+            } else if (dateStartString) {
+                for (let i=0; i < dataArray.length; i++) {
+                    let lastDate = textToDate(dataArray[i].lastupdatedate);
+                    if (startDate <= lastDate) {
+                        newArray.push(dataArray[i]);
+                    }
+                }
+            } else if (dateEndString) {
+                for (let i=0; i < dataArray.length; i++) {
+                    let lastDate = textToDate(dataArray[i].lastupdatedate);
+                    if (endDate >= lastDate) {
+                        newArray.push(dataArray[i]);
+                    }
+                }
+            } else {newArray = dataArray}
+            return newArray;
+        }
+
+        function deleteTown(townID) {
+            //delete a state selector from the form
+            document.getElementById(townID).remove();
+            //drawChart();
+        }
+
+        function addTown() {
+            //add a town selector to the form
+            globalCount++;
+            var townID = "town-" + globalCount;
+            var deleteFunc = "deleteTown('" + townID + "');";
+            var townDiv = document.createElement("tr");
+            townDiv.setAttribute("class","town");
+            townDiv.setAttribute("id",townID);
+
+            var townTD = document.createElement("td");
+
+            var townGroup = document.createElement("div");
+            townGroup.setAttribute("class","input-group");
+
+            var selectGroup = document.createElement("select");
+            selectGroup.setAttribute("class","custom-select town-select");
+
+            var selectOption = document.createElement("option");
+            selectOption.setAttribute("value","NA");
+            selectOption.setAttribute("selected",true);
+            selectOption.innerHTML = "Choose a town";
+            selectGroup.appendChild(selectOption);
+
+            var townAppend = document.createElement("div");
+            townAppend.setAttribute("class","input-group-append");
+
+            var townDelete = document.createElement("button");
+            townDelete.setAttribute("type","button");
+            townDelete.setAttribute("class","btn btn-danger btn-sm");
+            townDelete.setAttribute("onclick",deleteFunc);
+            townDelete.innerHTML = "X";
+            townAppend.appendChild(townDelete);
+
+            townGroup.appendChild(selectGroup);
+            townGroup.appendChild(townAppend);
+
+            townTD.appendChild(townGroup);
+
+            townDiv.appendChild(townTD);
+
+            document.getElementById("town-selector").appendChild(townDiv);
+            buildTownList();
+        }
+
+        function buildTownList() {
+            $(".town-select").each(function (i) {
+                for (let x = 0; x < ctTowns.length; x++) {
+                    let opt = ctTowns[x];
+                    let el = document.createElement("option");
+                    el.textContent = opt;
+                    el.value = opt;
+                    this.appendChild(el);
+                }
+            });
+        }
+
+        function getTowns(data) {
+            for (var i=0; i < data.length; ++i) {
+                if (ctTowns.indexOf(data[i].town) == -1) {
+                    ctTowns.push(data[i].town)
+                }
+            }
+        }
+
+        function getSelectedTowns() {
+            //gets an array of all states selected
+            var townArray = [];
+            var valText = "";
+            $("#town-selector").children().each(function () {
+                $(this).children().each(function () {
+                    $(this).children('.input-group').each(function () {
+                        $(this).children('.town-select').each(function () {
+                            valText = $(this).find(":selected").val();
+                            townArray.push(valText);
+                        })
+                    })
+                })
+            });
+            return townArray;            
+        }
+
+        function getDateStrings(data) {
+            let dateArray = [];
+            for (var i=0; i < data.length; ++i) {
+                if (dateArray.indexOf(data[i].lastupdatedate) == -1) {
+                    dateArray.push(data[i].lastupdatedate);
+                }
+            }
+            return dateArray;
+        }
+
+        function getTownArray(data, townArray) {
+            //data must be json array; townArray must be an array of town names.
+            var townList = [];
+            townList = townArray.map((x) => x);
+            townList.splice(0,0,"Date");
+            var dataArray = [townList];
+            var dateArray = getDateStrings(data);
+
+            loop1:
+            for (var i=0; i < dateArray.length; ++i) {
+                let dataRow = [];
+                dataRow.push(textToDate(dateArray[i]));
+                loop2:
+                for (var j=0; j < townArray.length; ++j) {
+                    let dataVal = null;
+                    let caseVal = null;
+                    let nextCaseVal = 0;
+                    loop3:
+                    for (var k=0; k < data.length; ++k) {
+                        if (data[k].town == townArray[j] && data[k].lastupdatedate == dateArray[i]) {
+                            caseVal = Number(data[k].towncaserate);
+                        }
+                        if (data[k].town == townArray[j] && data[k].lastupdatedate == dateArray[i+1]) {
+                            nextCaseVal = Number(data[k].towncaserate);
+                            break loop3;
+                        }
+                    }
+                    dataVal = caseVal - nextCaseVal;
+                    dataVal = cleanDatum(dataVal);
+                    dataRow.push(dataVal);
+                }
+                dataArray.push(dataRow);
+            }
+            return dataArray;
+        }
+
+        function cleanDatum(datum) {
+            //corrects out of range results
+            if(datum < 0) {
+                datum = 0;
+            }
+            return datum;
+        }
+
+        function calcMA(data) {
+            let dataSet = [];
+            dataSet.push(data[0]);
+            for (let i=1; i<data.length;++i) {
+                let dataRow = [];
+                dataRow.push(data[i][0])
+                for (let j=1; j<data[0].length;++j) {
+                    let dataCount = 0;
+                    let dataTotal = 0;
+                    let dateVal = data[i][0];
+                    let dateValM = Date.parse(dateVal);
+                    let subtractTime = 7*86400000
+                    let minDateM = dateValM - subtractTime
+                    let minDate = new Date(minDateM);
+                    for (let k=1; k<data.length;++k) {
+                        if (data[k][0] <= dateVal && data[k][0] >= minDate) {
+                            dataCount++;
+                            dataTotal += data[k][j];
+                        }
+                    }
+                    let dataAvg = dataTotal / dataCount;
+                    dataRow.push(dataAvg);
+                }
+                dataSet.push(dataRow);
+            }
+            return dataSet;
+        }
+
+        function drawChart() {
+            let filtDateArray = filterDates(ctData);
+            let townFilter = getSelectedTowns();
+            let filtTownArray = getTownArray(filtDateArray, townFilter);
+            let filtTownMAArray = calcMA(filtTownArray);
+            let dataTable = google.visualization.arrayToDataTable(filtTownMAArray);
+            var options = {
+                title: "COVID-19 Case Rate Per 100,000 People, 7-Day Moving Average",
+                legend: {position: 'bottom'}
+            };
+            var chart = new google.visualization.LineChart(document.getElementById('chart'));
+            chart.draw(dataTable, options);
+        }
+
+        $(document).ready(function () {
+            $.ajax({
+                url: "https://data.ct.gov/resource/28fr-iqnx.json?$select=lastupdatedate,town,towncaserate",
+                type: "GET",
+                data: {
+                "$limit" : 100000,
+                "$$app_token" : "YJwavaiB21t7wdkpiMh276CKX"
+                }
+            }).done(function(data) {
+                data.sort((a, b) => {
+                    if (a.town < b.town) {return -1;}
+                    if (a.town > b.town) {return 1;}
+                    return 0;
+                });
+                data.sort((a,b) => {
+                    if (a.lastupdatedate > b.lastupdatedate) {return -1;}
+                    if (a.lastupdatedate < b.lastupdatedate) {return 1};
+                    return 0;
+                })
+                ctData = data;
+            }).done(function(data) {
+                getTowns(data);
+            }).done(function(data) {
+                buildTownList();
+            });
+
+            google.charts.load('current', { 'packages': ['corechart'] });
+
+            $("#town-form").on('change', function (e) {
+                e.preventDefault();
+                drawChart();
+            });
+
+            $("#data-type-form").on('change', function (e) {
+                e.preventDefault();
+                drawChart();
+            });
+
+        })
+        //EVERYTHING BELOW THIS LINE IS FROM INDEX.HTML!!!!!!!!!!!!!!!!!!
+        /* var globalCount = 0;
 
         function addState() {
             //add a state selector to the form
@@ -341,7 +543,6 @@
                 let dataArray = getStateArray(data, getStates());
                 let MaArray = calcMovingAverage(dataArray, 7);
                 let filtDataArray = filterDates(dataArray);
-                console.log(filtDataArray);  //DELETE ME!!!!!
                 let filtMaArray = filterDates(MaArray);
 
                 var dataTable = google.visualization.arrayToDataTable(filtDataArray);
@@ -365,6 +566,12 @@
                 }
                 
             });
+        }
+
+        function getCTTownData() {
+            $.getJSON("https://data.ct.gov/resource/28fr-iqnx.json", function (data) {
+                let dataArray = 
+            })
         }
 
         function buildStateLists() {
@@ -396,7 +603,7 @@
                 e.preventDefault();
                 drawChart();
             });
-        })
+        }) */
     </script>
 </body>
 </html>
