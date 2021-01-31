@@ -152,6 +152,8 @@
             'WY': 578759
         }
 
+        var covidData;
+
         var globalCount = 0;
 
         function addState() {
@@ -337,34 +339,30 @@
         }
 
         function drawChart() {
-            $.getJSON("https://api.covidtracking.com/v1/states/daily.json", function (data) {
-                let dataArray = getStateArray(data, getStates());
-                let MaArray = calcMovingAverage(dataArray, 7);
-                let filtDataArray = filterDates(dataArray);
-                console.log(filtDataArray);  //DELETE ME!!!!!
-                let filtMaArray = filterDates(MaArray);
+            let dataArray = getStateArray(covidData, getStates());
+            let MaArray = calcMovingAverage(dataArray, 7);
+            let filtDataArray = filterDates(dataArray);
+            let filtMaArray = filterDates(MaArray);
 
-                var dataTable = google.visualization.arrayToDataTable(filtDataArray);
-                var options = {
-                    title: 'New Coronavirus Cases per 100,000 people',
-                    legend: { position: 'bottom' }
-                };
+            var dataTable = google.visualization.arrayToDataTable(filtDataArray);
+            var options = {
+                title: 'New Coronavirus Cases per 100,000 people',
+                legend: { position: 'bottom' }
+            };
 
-                var dataTableMa = google.visualization.arrayToDataTable(filtMaArray);
-                var optionsMa = {
-                    title: '7-Day Moving Average of New Coronavirus Cases per 100,000 people',
-                    legend: { position: 'bottom' }
-                };
+            var dataTableMa = google.visualization.arrayToDataTable(filtMaArray);
+            var optionsMa = {
+                title: '7-Day Moving Average of New Coronavirus Cases per 100,000 people',
+                legend: { position: 'bottom' }
+            };
 
-                var chart = new google.visualization.LineChart(document.getElementById('chart'));
+            var chart = new google.visualization.LineChart(document.getElementById('chart'));
 
-                if(document.getElementById("data-type-select").value == "7-Day") {
-                    chart.draw(dataTableMa, optionsMa);
-                } else {
-                    chart.draw(dataTable, options);
-                }
-                
-            });
+            if(document.getElementById("data-type-select").value == "7-Day") {
+                chart.draw(dataTableMa, optionsMa);
+            } else {
+                chart.draw(dataTable, options);
+            }
         }
 
         function buildStateLists() {
@@ -381,9 +379,11 @@
         }
 
         $(document).ready(function () {
+            $.getJSON("https://api.covidtracking.com/v1/states/daily.json", function (data) {
+                covidData = data;
+            });
 
             google.charts.load('current', { 'packages': ['corechart'] });
-            google.charts.setOnLoadCallback(drawChart());
             
             buildStateLists();
 
